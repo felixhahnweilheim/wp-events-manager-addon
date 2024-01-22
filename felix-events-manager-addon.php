@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Felix' Events Manager Addon
- * Description: Additional features: use category image as fallback, allow URL parameters for search
+ * Description: Additional features: use category image as fallback, allow URL parameters for search, enable bookings by default for new events
  * Version: 0.1
  * Author: Felix Hahn
  * Author URI: https://hahn-felix.de
