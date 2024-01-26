@@ -22,6 +22,9 @@ const FX_EM_BOOKINGS_DEFAULT = true;
 // boolean FX_EM_ALLOW_GET_SEARCH Allow to search via some URL parameters.
 const FX_EM_ALLOW_GET_SEARCH = true;
 
+// boolean FX_EM_SCHEMA_SINGLE Add Schema.org tags to single events pages.
+const FX_EM_SCHEMA_SINGLE = true;
+
 if ( FX_EM_IMAGE_FALLBACK ) {
 	require_once __DIR__ . '/includes/image-fallback.php';
 }
@@ -30,4 +33,8 @@ if ( FX_EM_BOOKINGS_DEFAULT ) {
 }
 if ( FX_EM_ALLOW_GET_SEARCH ) {
 	require_once __DIR__ . '/includes/add-get-params-to-search.php';
+}
+
+if ( FX_EM_SCHEMA_SINGLE ) {
+	require_once __DIR__ . '/includes/add-schema-to-single-event.php';
 }
