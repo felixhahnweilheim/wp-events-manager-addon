@@ -80,6 +80,15 @@ class FX_EM_Schema {
 			$schema['image'] = $imageUrl;
 		}
 		
+        // Status (scheduled or cancelled) if feature is enabled
+        if ( get_option('dbem_event_status_enabled') ) {
+            if ( $this->EM_Event->get_active_status() == __('Cancelled', 'events-manager'))  {
+                $schema['eventStatus'] = 'https://schema.org/EventCancelled';
+            } else {
+                $schema['eventStatus'] = 'https://schema.org/EventScheduled';
+            }
+        }
+		
         if ( !isset( $this->EM_Event->event_location_type ) ) {
         	// Physical Event
         	$schema['eventAttendanceMode'] = 'https://schema.org/OfflineEventAttendanceMode';
