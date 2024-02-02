@@ -26,7 +26,7 @@ class FX_EM_Schema {
     public $EM_Event;
     
 	/**
-	 * @var EM_Location
+	 * @var EM_Location (physical)
 	 */
     public $EM_Location;
     
@@ -58,6 +58,13 @@ class FX_EM_Schema {
         
         // Event Name
         $schema['name'] = $this->EM_Event->name;
+        
+		// Event Description
+		if ( !empty($this->EM_Event->post_excerpt) ) {
+			$schema['description'] = wp_strip_all_tags($this->EM_Event->post_excerpt,true);
+		} elseif (!empty($this->EM_Event->post_content)) {
+			$schema['description']  = substr(wp_strip_all_tags($this->EM_Event->post_content, true),0,50);
+		}
 
         // Start Date and Time
         $EM_DateTime = $this->EM_Event->start();
@@ -67,11 +74,21 @@ class FX_EM_Schema {
         $EM_DateTime = $this->EM_Event->end();
         $schema['endDate'] = $EM_DateTime->format('Y-m-d\TH:iO');
 
-        // @todo support online events
+		// Image
+		$imageUrl = $this->EM_Event->output('#_EVENTIMAGEURL');
+		if ( !empty($imageUrl) ) {
+			$schema['image'] = $imageUrl;
+		}
+		
         if ( !isset( $this->EM_Event->event_location_type ) ) {
-            // Physical Location
-            $schema['location'] = $this->get_location();
-        }
+        	// Physical Event
+        	$schema['eventAttendanceMode'] = 'https://schema.org/OfflineEventAttendanceMode';
+        	$schema['location'] = $this->get_location();
+        } elseif ($this->EM_Event->event_location->data->url !== '') {
+			// Online Event
+			$schema['eventAttendanceMode'] = 'https://schema.org/OnlineEventAttendanceMode';
+			$schema['location'] = $this->get_virtual_location($this->EM_Event->event_location);
+		}
         
         return $schema;
     }
@@ -109,4 +126,15 @@ class FX_EM_Schema {
         
         return $address;
     }
+	
+	/*
+	 * Get Virtual Location
+	 */
+	private function get_virtual_location($EM_Event_Location): array {
+		
+		$location['@type'] = 'VirtualLocation';
+		$location['url'] = $EM_Event_Location->data['url'];
+		
+		return $location;
+	}
 }
