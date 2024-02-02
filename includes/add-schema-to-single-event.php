@@ -67,9 +67,11 @@ class FX_EM_Schema {
         $EM_DateTime = $this->EM_Event->end();
         $schema['endDate'] = $EM_DateTime->format('Y-m-d\TH:iO');
 
-        // Location
         // @todo support online events
-        $schema['location'] = $this->get_location();
+        if ( !isset( $this->EM_Event->event_location_type ) ) {
+            // Physical Location
+            $schema['location'] = $this->get_location();
+        }
         
         return $schema;
     }
@@ -96,7 +98,12 @@ class FX_EM_Schema {
         $address['@type'] = 'PostalAddress';
         $address['addressCountry'] = $this->EM_Location->location_country;
         $address['addressLocality'] = $this->EM_Location->location_town;
-        $address['addressRegion'] = $this->EM_Location->location_region;
+        // addressRegion: use State, region as fallback
+        if ( !empty( $this->EM_Location->location_state ) ) {
+            $address['addressRegion'] = $this->EM_Location->location_state;
+        } elseif ( !empty( $this->EM_Location->location_region ) ) {
+            $address['addressRegion'] = $this->EM_Location->location_region;
+        }
         $address['postalCode'] = $this->EM_Location->location_postcode;
         $address['streetAddress'] = $this->EM_Location->location_address;
         
