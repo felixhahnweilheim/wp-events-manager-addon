@@ -1,40 +1,71 @@
 <?php
 /**
  * Plugin Name: Felix' Events Manager Addon
- * Description: Additional features: use category image as fallback, allow URL parameters for search, enable bookings by default for new events
- * Version: 0.1
+ * Description: Additional features: use category image as fallback, allow URL parameters for search, enable bookings by default for new events (optional)
+ * Version: 1.0.0
+ * Text Domain: felix-events-manager-addon
+ * Domain Path: /languages
  * Author: Felix Hahn
- * Author URI: https://hahn-felix.de
+ * Author URI: https://felixwebdesign.de
  **/
-if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+/*
+ * Admin Settings
+ * also loads additional PHP files depending on settings
+ */
+require_once __DIR__ . "/includes/admin.php";
+
+/*
+ * load translations
+ */
+add_action( 'init', 'fx_em_load_textdomain' );
+function fx_em_load_textdomain() {
+	load_plugin_textdomain( 'felix-events-manager-addon', false, basename( dirname( __FILE__ ) ) . '/languages' ); 
 }
 
 /*
- * The following constansts can be overwritten in wp-config.php to disable specific features of this plugin safely.
+ * Add Events and Locations to WordPress search
  */
-// boolean FX_EM_IMAGE_FALLBACK Image Fallback: User the category image as fallback if an individual event has no image.
-const FX_EM_IMAGE_FALLBACK = true;
-
-// boolean FX_EM_BOOKINGS_DEFAULT Enable bookings by default for every new event if the user can manage bookings.
-const FX_EM_BOOKINGS_DEFAULT = true;
-
-// boolean FX_EM_ALLOW_GET_SEARCH Allow to search via some URL parameters.
-const FX_EM_ALLOW_GET_SEARCH = true;
-
-// boolean FX_EM_SCHEMA_SINGLE Add Schema.org tags to single events pages.
-const FX_EM_SCHEMA_SINGLE = true;
-
-if ( FX_EM_IMAGE_FALLBACK ) {
-	require_once __DIR__ . '/includes/image-fallback.php';
-}
-if ( FX_EM_BOOKINGS_DEFAULT ) {
-	require_once __DIR__ . '/includes/enable-bookings-by-default.php';
-}
-if ( FX_EM_ALLOW_GET_SEARCH ) {
-	require_once __DIR__ . '/includes/add-get-params-to-search.php';
+add_filter( 'pre_get_posts', 'include_custom_post_in_search' );
+function include_custom_post_in_search( $query )
+{
+    if ( $query->is_search ) $query->set( 'post_type', ['post', 'page', 'event', 'location'] );
+    return $query;
 }
 
-if ( FX_EM_SCHEMA_SINGLE ) {
-	require_once __DIR__ . '/includes/add-schema-to-single-event.php';
+/*
+ * Placeholder #_DUPLICATELINK
+ * Link to duplicate the event
+ */
+add_filter( 'em_event_output_placeholder', 'my_em_duplicate_ph', 1, 3 );
+function my_em_duplicate_ph( $replace, $EM_Event, $result )
+{
+    if ( $result == '#_DUPLICATELINK' ) return '<a href="' . $EM_Event->duplicate_url() . '">' . __( 'Duplicate Event', 'felix-events-manager-addon' ) . '</a>';
+    
+    return $replace;
+}
+
+function fx_em_is_gutenberg_styled( string $content) {
+	return strpos($content, '<- wp:') !== false;
+}
+
+/*
+ * Allow Emojis in event description
+ */
+add_action( 'em_event_save_pre', 'fx_em_save_pre', 10, 1 );
+function fx_em_save_pre( $EM_Event )
+{
+    $EM_Event->post_content = wp_encode_emoji($EM_Event->post_content);
+    return $EM_Event;
+}
+
+/*
+ * Allow Emojis in booking comment
+ */
+add_action( 'em_booking_save_pre', 'fx_em_save_b_pre', 10, 1 );
+function fx_em_save_b_pre( $EM_Booking )
+{
+    $EM_Booking->booking_comment = wp_encode_emoji($EM_Booking->booking_comment);
+    return $EM_Booking;
 }

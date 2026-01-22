@@ -80,20 +80,20 @@ class FX_EM_Schema {
 			$schema['image'] = $imageUrl;
 		}
 		
-        // Status (scheduled or cancelled) if feature is enabled
-        if ( get_option('dbem_event_status_enabled') ) {
-            if ( $this->EM_Event->get_active_status() == __('Cancelled', 'events-manager'))  {
-                $schema['eventStatus'] = 'https://schema.org/EventCancelled';
-            } else {
-                $schema['eventStatus'] = 'https://schema.org/EventScheduled';
-            }
+		// Status (scheduled or cancelled)   
+		//$status = $this->EM_Event->get_active_status();
+		if ( $this->EM_Event->get_active_status() == __('Cancelled', 'events-manager'))  {
+        //if ( isset($EM_Event->event_active_status) && $EM_Event->event_active_status == 0 ) {
+            $schema['eventStatus'] = 'https://schema.org/EventCancelled';
+        } else {
+            $schema['eventStatus'] = 'https://schema.org/EventScheduled';
         }
 		
         if ( !isset( $this->EM_Event->event_location_type ) ) {
         	// Physical Event
         	$schema['eventAttendanceMode'] = 'https://schema.org/OfflineEventAttendanceMode';
         	$schema['location'] = $this->get_location();
-        } elseif ($this->EM_Event->event_location->data->url !== '') {
+        } elseif ($this->EM_Event->event_location->data['url'] !== '') {
 			// Online Event
 			$schema['eventAttendanceMode'] = 'https://schema.org/OnlineEventAttendanceMode';
 			$schema['location'] = $this->get_virtual_location($this->EM_Event->event_location);
